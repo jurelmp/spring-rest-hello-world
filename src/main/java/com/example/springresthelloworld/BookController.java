@@ -3,8 +3,9 @@ package com.example.springresthelloworld;
 import com.example.springresthelloworld.error.BookNotFoundException;
 import com.example.springresthelloworld.error.BookUnSupportedFieldPatchException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -12,29 +13,32 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Validated
+@RequestMapping(path = "api")
 public class BookController {
 
     @Autowired
     private BookRepository repository;
 
-    @GetMapping("/books")
+    @GetMapping("books")
     List<Book> findAll() {
         return repository.findAll();
     }
 
-//    @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/books")
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("books")
     Book newBook(@Valid @RequestBody Book newBook) {
         return repository.save(newBook);
     }
 
-    @GetMapping("/books/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("books/{id}")
     Book findOne(@PathVariable Long id) {
         return repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
     }
 
-    @PutMapping("/books/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("books/{id}")
     Book saveOrUpdate(@RequestBody Book newBook, @PathVariable Long id) {
         return repository.findById(id)
                 .map(x -> {
@@ -49,7 +53,8 @@ public class BookController {
                 });
     }
 
-    @PatchMapping("/books/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("books/{id}")
     Book patch(@RequestBody Map<String, String> update, @PathVariable Long id) {
         return repository.findById(id)
                 .map(x -> {
@@ -66,7 +71,8 @@ public class BookController {
                 });
     }
 
-    @DeleteMapping("/books/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("books/{id}")
     void deleteBook(@PathVariable Long id) {
         repository.deleteById(id);
     }
